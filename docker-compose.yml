@@ -6,16 +6,24 @@ services:
     ports:
       - "8000:8000"
     volumes:
-      - ./backend/data:/app/data
+      - backend_data:/app/data
     environment:
       - DATABASE_URL=sqlite:///data/dashboard.db
       - CORS_ORIGINS=http://localhost:3000
+    restart: unless-stopped
 
   frontend:
-    build: ./frontend
+    build:
+      context: ./frontend
+      args:
+        - NEXT_PUBLIC_API_URL=http://backend:8000
     ports:
       - "3000:3000"
     depends_on:
       - backend
     environment:
       - NEXT_PUBLIC_API_URL=http://backend:8000
+    restart: unless-stopped
+
+volumes:
+  backend_data:
