@@ -8,8 +8,10 @@ from typing import List
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
 
+from ...core.security import get_current_user
 from ...database import get_db
 from ...models.action_item import ActionItem
+from ...models.user import User
 from ...schemas.action import ActionItemOut, ActionStatusUpdate
 
 router = APIRouter(prefix="/actions", tags=["actions"])
@@ -22,6 +24,7 @@ def list_actions(
     status: str | None = Query(None, description="pending, done, dismissed"),
     date: dt.date | None = Query(None),
     db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
 ):
     query = db.query(ActionItem)
 
@@ -42,6 +45,7 @@ def update_action_status(
     action_id: int,
     body: ActionStatusUpdate,
     db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
 ):
     item = db.query(ActionItem).filter_by(id=action_id).first()
     if not item:

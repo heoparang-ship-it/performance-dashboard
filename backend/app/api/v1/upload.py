@@ -7,8 +7,10 @@ from datetime import date
 from fastapi import APIRouter, Depends, File, HTTPException, Query, UploadFile
 from sqlalchemy.orm import Session
 
+from ...core.security import get_current_user
 from ...database import get_db
 from ...models.store import Store
+from ...models.user import User
 from ...schemas.upload import UploadResult
 from ...services.csv_processor import process_csv
 
@@ -21,6 +23,7 @@ async def upload_csv(
     store_id: int = Query(..., description="업로드 대상 스토어 ID"),
     target_date: date | None = Query(None, description="데이터 날짜 (기본: 오늘)"),
     db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
 ):
     # 스토어 존재 확인
     store = db.query(Store).filter_by(id=store_id).first()

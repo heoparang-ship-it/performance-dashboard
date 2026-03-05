@@ -9,9 +9,11 @@ from typing import List
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
 
+from ...core.security import get_current_user
 from ...database import get_db
 from ...models.store import Store
 from ...models.setting import Setting
+from ...models.user import User
 from ...schemas.action import ActionItemOut
 from ...schemas.performance import KpiSummary, TrendPoint
 from ...services.naver_api import NaverAdsClient
@@ -50,6 +52,7 @@ def dashboard_summary(
     store_id: int = Query(..., description="스토어 ID (필수)"),
     date: dt.date | None = Query(None),
     db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
 ):
     client, customer_id = _resolve_client(store_id, db)
     target = date or dt.date.today()
@@ -68,6 +71,7 @@ def dashboard_trend(
     store_id: int = Query(..., description="스토어 ID (필수)"),
     days: int = Query(7, ge=1, le=90),
     db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
 ):
     client, customer_id = _resolve_client(store_id, db)
     end = dt.date.today()
@@ -80,6 +84,7 @@ def dashboard_alerts(
     store_id: int = Query(..., description="스토어 ID (필수)"),
     date: dt.date | None = Query(None),
     db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
 ):
     client, customer_id = _resolve_client(store_id, db)
     target = date or dt.date.today()

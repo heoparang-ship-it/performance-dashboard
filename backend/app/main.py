@@ -2,12 +2,18 @@
 
 from __future__ import annotations
 
+import logging
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from .api.v1.router import router as v1_router
-from .config import CORS_ORIGINS
-from .database import init_db
+from .config import CORS_ORIGINS, MASTER_EMAIL, MASTER_PASSWORD
+from .core.security import hash_password
+from .database import SessionLocal, init_db
+from .models.user import User
+
+logger = logging.getLogger(__name__)
 
 app = FastAPI(
     title="퍼포먼스 마케팅 대시보드 API",
@@ -29,6 +35,26 @@ app.include_router(v1_router)
 @app.on_event("startup")
 def on_startup():
     init_db()
+    _ensure_master_account()
+
+
+def _ensure_master_account():
+    """마스터 계정이 없으면 자동 생성."""
+    db = SessionLocal()
+    try:
+        master = db.query(User).filter_by(role="master").first()
+        if not master:
+            master = User(
+                email=MASTER_EMAIL,
+                hashed_password=hash_password(MASTER_PASSWORD),
+                name="마스터",
+                role="master",
+            )
+            db.add(master)
+            db.commit()
+            logger.info("마스터 계정 생성됨: %s", MASTER_EMAIL)
+    finally:
+        db.close()
 
 
 @app.get("/health")

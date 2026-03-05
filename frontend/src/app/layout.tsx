@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import "./globals.css";
-import Sidebar from "@/components/Sidebar";
-import StoreProvider from "@/components/StoreProvider";
+import AuthProvider from "@/components/AuthProvider";
+import AppShell from "@/components/AppShell";
 
 export const metadata: Metadata = {
   title: "엑스컴 마케팅 대시보드",
@@ -16,12 +16,9 @@ export default function RootLayout({
   return (
     <html lang="ko">
       <body className="bg-slate-50 text-gray-900">
-        <StoreProvider>
-          <div className="flex min-h-screen">
-            <Sidebar />
-            <main className="flex-1 ml-60 overflow-auto">{children}</main>
-          </div>
-        </StoreProvider>
+        <AuthProvider>
+          <AppShell>{children}</AppShell>
+        </AuthProvider>
       </body>
     </html>
   );

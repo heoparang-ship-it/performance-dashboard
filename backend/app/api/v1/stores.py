@@ -7,8 +7,10 @@ from typing import List
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
 
+from ...core.security import get_current_user
 from ...database import get_db
 from ...models.store import Store
+from ...models.user import User
 from ...schemas.store import StoreCreate, StoreOut, StoreUpdate
 
 router = APIRouter(prefix="/stores", tags=["stores"])
@@ -19,6 +21,7 @@ def list_stores(
     synced_only: bool = Query(False, description="(하위호환) linked_only와 동일"),
     linked_only: bool = Query(False, description="광고주 연결된 스토어만 반환"),
     db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
 ):
     query = db.query(Store)
     if linked_only or synced_only:
@@ -27,7 +30,7 @@ def list_stores(
 
 
 @router.post("", response_model=StoreOut, status_code=201)
-def create_store(body: StoreCreate, db: Session = Depends(get_db)):
+def create_store(body: StoreCreate, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
     store = Store(name=body.name, description=body.description, customer_id=body.customer_id)
     db.add(store)
     db.commit()
@@ -36,7 +39,7 @@ def create_store(body: StoreCreate, db: Session = Depends(get_db)):
 
 
 @router.post("/link-customer", response_model=StoreOut)
-def link_customer_store(body: StoreCreate, db: Session = Depends(get_db)):
+def link_customer_store(body: StoreCreate, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
     """광고주 customer_id로 스토어 찾거나 생성."""
     if not body.customer_id:
         raise HTTPException(status_code=400, detail="customer_id가 필요합니다.")
@@ -56,7 +59,7 @@ def link_customer_store(body: StoreCreate, db: Session = Depends(get_db)):
 
 
 @router.get("/{store_id}", response_model=StoreOut)
-def get_store(store_id: int, db: Session = Depends(get_db)):
+def get_store(store_id: int, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
     store = db.query(Store).filter_by(id=store_id).first()
     if not store:
         raise HTTPException(status_code=404, detail="스토어를 찾을 수 없습니다.")
@@ -64,7 +67,7 @@ def get_store(store_id: int, db: Session = Depends(get_db)):
 
 
 @router.put("/{store_id}", response_model=StoreOut)
-def update_store(store_id: int, body: StoreUpdate, db: Session = Depends(get_db)):
+def update_store(store_id: int, body: StoreUpdate, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
     store = db.query(Store).filter_by(id=store_id).first()
     if not store:
         raise HTTPException(status_code=404, detail="스토어를 찾을 수 없습니다.")
@@ -78,7 +81,7 @@ def update_store(store_id: int, body: StoreUpdate, db: Session = Depends(get_db)
 
 
 @router.delete("/{store_id}", status_code=204)
-def delete_store(store_id: int, db: Session = Depends(get_db)):
+def delete_store(store_id: int, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
     store = db.query(Store).filter_by(id=store_id).first()
     if not store:
         raise HTTPException(status_code=404, detail="스토어를 찾을 수 없습니다.")

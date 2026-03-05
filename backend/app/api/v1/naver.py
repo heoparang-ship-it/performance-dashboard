@@ -8,8 +8,10 @@ from typing import List
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
+from ...core.security import get_current_user
 from ...database import get_db
 from ...models.setting import Setting
+from ...models.user import User
 from ...schemas.naver_api import (
     NaverAccountOverview,
     NaverAdgroupInfo,
@@ -50,7 +52,7 @@ def _get_client(db: Session) -> NaverAdsClient:
 
 
 @router.get("/credentials", response_model=NaverApiCredentialsOut)
-def get_credentials(db: Session = Depends(get_db)):
+def get_credentials(db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
     """저장된 API 인증 정보 조회 (마스킹)."""
     creds = _get_credentials(db)
     if not creds:
@@ -67,7 +69,7 @@ def get_credentials(db: Session = Depends(get_db)):
 
 
 @router.post("/credentials")
-def save_credentials(body: NaverApiCredentials, db: Session = Depends(get_db)):
+def save_credentials(body: NaverApiCredentials, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
     """API 인증 정보 저장."""
     value = json.dumps({
         "api_key": body.api_key,
@@ -87,7 +89,7 @@ def save_credentials(body: NaverApiCredentials, db: Session = Depends(get_db)):
 
 
 @router.delete("/credentials")
-def delete_credentials(db: Session = Depends(get_db)):
+def delete_credentials(db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
     """API 인증 정보 삭제."""
     db.query(Setting).filter_by(key=SETTINGS_KEY).delete()
     db.commit()
@@ -98,7 +100,7 @@ def delete_credentials(db: Session = Depends(get_db)):
 
 
 @router.post("/test-connection", response_model=NaverConnectionTest)
-def test_connection(db: Session = Depends(get_db)):
+def test_connection(db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
     """API 연결 테스트."""
     client = _get_client(db)
     result = client.test_connection()
@@ -109,7 +111,7 @@ def test_connection(db: Session = Depends(get_db)):
 
 
 @router.get("/customers", response_model=List[NaverCustomer])
-def get_customers(db: Session = Depends(get_db)):
+def get_customers(db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
     """담당 중인 광고주 목록."""
     client = _get_client(db)
     try:
@@ -147,7 +149,7 @@ def get_customers(db: Session = Depends(get_db)):
 
 
 @router.get("/accounts/{customer_id}/overview", response_model=NaverAccountOverview)
-def get_account_overview(customer_id: str, db: Session = Depends(get_db)):
+def get_account_overview(customer_id: str, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
     """광고주의 캠페인/광고그룹 구조 조회."""
     client = _get_client(db)
 

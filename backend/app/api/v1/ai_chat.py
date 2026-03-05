@@ -10,8 +10,10 @@ from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
+from ...core.security import get_current_user
 from ...database import get_db
 from ...models.setting import Setting
+from ...models.user import User
 
 router = APIRouter(prefix="/ai", tags=["ai"])
 
@@ -37,7 +39,7 @@ class ApiKeyRequest(BaseModel):
 
 
 @router.get("/api-key-status")
-def get_api_key_status(db: Session = Depends(get_db)):
+def get_api_key_status(db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
     """Claude API 키 설정 상태."""
     setting = db.query(Setting).filter_by(key=CLAUDE_API_KEY_SETTING).first()
     if not setting:
@@ -48,7 +50,7 @@ def get_api_key_status(db: Session = Depends(get_db)):
 
 
 @router.post("/api-key")
-def save_api_key(body: ApiKeyRequest, db: Session = Depends(get_db)):
+def save_api_key(body: ApiKeyRequest, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
     """Claude API 키 저장."""
     setting = db.query(Setting).filter_by(key=CLAUDE_API_KEY_SETTING).first()
     if setting:
@@ -61,7 +63,7 @@ def save_api_key(body: ApiKeyRequest, db: Session = Depends(get_db)):
 
 
 @router.delete("/api-key")
-def delete_api_key(db: Session = Depends(get_db)):
+def delete_api_key(db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
     """Claude API 키 삭제."""
     db.query(Setting).filter_by(key=CLAUDE_API_KEY_SETTING).delete()
     db.commit()
@@ -89,7 +91,7 @@ SYSTEM_PROMPT = """당신은 '엑스컴AI'입니다. 10년차 퍼포먼스 마�
 
 
 @router.post("/chat", response_model=ChatResponse)
-def chat(body: ChatRequest, db: Session = Depends(get_db)):
+def chat(body: ChatRequest, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
     """엑스컴AI 채팅."""
     import requests
 

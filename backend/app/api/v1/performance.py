@@ -9,9 +9,11 @@ from typing import List
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
 
+from ...core.security import get_current_user
 from ...database import get_db
 from ...models.store import Store
 from ...models.setting import Setting
+from ...models.user import User
 from ...schemas.performance import (
     AdgroupPerformance,
     AdgroupPerfWithDelta,
@@ -62,6 +64,7 @@ def campaigns(
     sort_by: str = Query("cost"),
     sort_dir: str = Query("desc"),
     db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
 ):
     client, customer_id = _resolve_client(store_id, db)
     end_date = end or dt.date.today()
@@ -74,6 +77,7 @@ def campaigns_with_delta(
     store_id: int = Query(..., description="스토어 ID (필수)"),
     period: int = Query(7, ge=1, le=30, description="비교 기간 (일)"),
     db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
 ):
     client, customer_id = _resolve_client(store_id, db)
     end_date = dt.date.today()
@@ -87,6 +91,7 @@ def adgroups(
     start: dt.date | None = Query(None),
     end: dt.date | None = Query(None),
     db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
 ):
     client, customer_id = _resolve_client(store_id, db)
     end_date = end or dt.date.today()
@@ -100,6 +105,7 @@ def adgroups_with_delta(
     campaign: str | None = Query(None, description="캠페인명 필터"),
     period: int = Query(7, ge=1, le=30, description="비교 기간 (일)"),
     db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
 ):
     client, customer_id = _resolve_client(store_id, db)
     end_date = dt.date.today()
@@ -113,6 +119,7 @@ def keywords(
     start: dt.date | None = Query(None),
     end: dt.date | None = Query(None),
     db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
 ):
     client, customer_id = _resolve_client(store_id, db)
     end_date = end or dt.date.today()
@@ -127,6 +134,7 @@ def keywords_with_delta(
     adgroup: str | None = Query(None, description="광고그룹명 필터"),
     period: int = Query(7, ge=1, le=30, description="비교 기간 (일)"),
     db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
 ):
     client, customer_id = _resolve_client(store_id, db)
     end_date = dt.date.today()
@@ -138,6 +146,7 @@ def adgroup_ads(
     store_id: int = Query(..., description="스토어 ID (필수)"),
     adgroup_id: str = Query(..., description="광고그룹 ID (nccAdgroupId)"),
     db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
 ):
     """광고그룹의 소재(광고) 목록."""
     client, customer_id = _resolve_client(store_id, db)

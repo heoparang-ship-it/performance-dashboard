@@ -8,9 +8,11 @@ from typing import List
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
 
+from ...core.security import get_current_user
 from ...database import get_db
 from ...models.store import Store
 from ...models.setting import Setting
+from ...models.user import User
 from ...schemas.naver_api import (
     AdCreativesSummary,
     AdExtensionsSummary,
@@ -57,6 +59,7 @@ def _resolve_client(store_id: int, db: Session):
 def bizmoney(
     store_id: int = Query(...),
     db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
 ):
     """비즈머니 잔액."""
     client, customer_id = _resolve_client(store_id, db)
@@ -72,6 +75,7 @@ def bizmoney(
 def quality_index(
     store_id: int = Query(...),
     db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
 ):
     """품질지수 분포."""
     client, customer_id = _resolve_client(store_id, db)
@@ -82,6 +86,7 @@ def quality_index(
 def ad_creatives(
     store_id: int = Query(...),
     db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
 ):
     """광고 소재 현황."""
     client, customer_id = _resolve_client(store_id, db)
@@ -92,6 +97,7 @@ def ad_creatives(
 def ad_extensions(
     store_id: int = Query(...),
     db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
 ):
     """확장소재 현황."""
     client, customer_id = _resolve_client(store_id, db)
@@ -103,6 +109,7 @@ def keyword_tool(
     body: KeywordToolRequest,
     store_id: int = Query(...),
     db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
 ):
     """키워드 도구."""
     if not body.keywords:
@@ -116,6 +123,7 @@ def bid_simulation(
     body: BidSimulationRequest,
     store_id: int = Query(...),
     db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
 ):
     """입찰 시뮬레이션."""
     client, customer_id = _resolve_client(store_id, db)

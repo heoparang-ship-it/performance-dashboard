@@ -1,10 +1,35 @@
 const BASE = "/api/v1";
 
+function getAuthToken(): string | null {
+  if (typeof window === "undefined") return null;
+  return localStorage.getItem("auth_token");
+}
+
 async function request<T>(url: string, options?: RequestInit): Promise<T> {
+  const token = getAuthToken();
+  const headers: Record<string, string> = {
+    "Content-Type": "application/json",
+    ...((options?.headers as Record<string, string>) || {}),
+  };
+  if (token) {
+    headers["Authorization"] = `Bearer ${token}`;
+  }
+
   const res = await fetch(`${BASE}${url}`, {
-    headers: { "Content-Type": "application/json" },
     ...options,
+    headers,
   });
+
+  if (res.status === 401) {
+    if (typeof window !== "undefined" && !url.includes("/auth/login")) {
+      localStorage.removeItem("auth_token");
+      localStorage.removeItem("auth_user");
+      window.location.href = "/login";
+    }
+    const err = await res.json().catch(() => ({ detail: "인증이 필요합니다." }));
+    throw new Error(err.detail || "인증이 필요합니다.");
+  }
+
   if (!res.ok) {
     const err = await res.json().catch(() => ({ detail: res.statusText }));
     throw new Error(err.detail || "요청 실패");
@@ -13,6 +38,27 @@ async function request<T>(url: string, options?: RequestInit): Promise<T> {
 }
 
 export const api = {
+  // 인증
+  login: (email: string, password: string) =>
+    request<LoginResponse>("/auth/login", {
+      method: "POST",
+      body: JSON.stringify({ email, password }),
+    }),
+  getMe: () => request<AuthUser>("/auth/me"),
+  getUsers: () => request<AuthUser[]>("/auth/users"),
+  createUser: (data: UserCreate) =>
+    request<AuthUser>("/auth/users", {
+      method: "POST",
+      body: JSON.stringify(data),
+    }),
+  updateUser: (userId: number, data: UserUpdate) =>
+    request<AuthUser>(`/auth/users/${userId}`, {
+      method: "PUT",
+      body: JSON.stringify(data),
+    }),
+  deleteUser: (userId: number) =>
+    request<void>(`/auth/users/${userId}`, { method: "DELETE" }),
+
   // 스토어
   getStores: (linkedOnly?: boolean) => {
     const params = new URLSearchParams();
@@ -428,4 +474,32 @@ export interface AiApiKeyStatus {
 export interface ChatMessage {
   role: "user" | "assistant";
   content: string;
+}
+
+// 인증 타입
+export interface AuthUser {
+  id: number;
+  email: string;
+  name: string;
+  role: "master" | "admin" | "staff";
+  created_at: string;
+}
+
+export interface LoginResponse {
+  access_token: string;
+  token_type: string;
+  user: AuthUser;
+}
+
+export interface UserCreate {
+  email: string;
+  password: string;
+  name: string;
+  role: "admin" | "staff";
+}
+
+export interface UserUpdate {
+  name?: string;
+  role?: string;
+  password?: string;
 }
