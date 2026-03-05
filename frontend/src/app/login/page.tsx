@@ -47,14 +47,14 @@ export default function LoginPage() {
         >
           <div>
             <label className="block text-xs font-medium text-slate-400 mb-1.5">
-              이메일
+              아이디
             </label>
             <input
-              type="email"
+              type="text"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               className="w-full px-3.5 py-2.5 bg-slate-700/50 border border-slate-600/50 rounded-lg text-white text-sm placeholder:text-slate-500 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all"
-              placeholder="이메일 주소"
+              placeholder="아이디 또는 이메일"
               required
               autoFocus
             />

@@ -39,7 +39,7 @@ def on_startup():
 
 
 def _ensure_master_account():
-    """마스터 계정이 없으면 자동 생성."""
+    """마스터 계정이 없으면 자동 생성, 있으면 ID/비밀번호를 설정값으로 동기화."""
     db = SessionLocal()
     try:
         master = db.query(User).filter_by(role="master").first()
@@ -53,6 +53,13 @@ def _ensure_master_account():
             db.add(master)
             db.commit()
             logger.info("마스터 계정 생성됨: %s", MASTER_EMAIL)
+        else:
+            # 설정값이 변경된 경우 마스터 계정 동기화
+            if master.email != MASTER_EMAIL:
+                master.email = MASTER_EMAIL
+                master.hashed_password = hash_password(MASTER_PASSWORD)
+                db.commit()
+                logger.info("마스터 계정 업데이트됨: %s", MASTER_EMAIL)
     finally:
         db.close()
 

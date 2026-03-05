@@ -25,6 +25,6 @@ JWT_SECRET_KEY = os.getenv("JWT_SECRET_KEY", "xcom-dashboard-secret-key-change-i
 JWT_ALGORITHM = "HS256"
 JWT_EXPIRE_MINUTES = int(os.getenv("JWT_EXPIRE_MINUTES", "1440"))  # 24시간
 
-# 마스터 계정 기본값
-MASTER_EMAIL = os.getenv("MASTER_EMAIL", "master@xcom.com")
-MASTER_PASSWORD = os.getenv("MASTER_PASSWORD", "xcom1234!")
+# 마스터 계정 기본값 (마스터만 아이디 형식, 일반 사용자는 이메일)
+MASTER_EMAIL = os.getenv("MASTER_EMAIL", "xcom")
+MASTER_PASSWORD = os.getenv("MASTER_PASSWORD", "dprtmzja1!")
