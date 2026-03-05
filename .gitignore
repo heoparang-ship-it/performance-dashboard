@@ -1,0 +1,33 @@
+# Dependencies
+frontend/node_modules/
+backend/.venv/
+__pycache__/
+*.pyc
+
+# Build
+frontend/.next/
+frontend/out/
+
+# Environment
+.env
+.env.local
+.env.*.local
+backend/.env
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+
+# Data
+backend/data/
+
+# Debug
+npm-debug.log*
+*.log
+
+# Claude
+.claude/
