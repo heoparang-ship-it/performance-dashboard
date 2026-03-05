@@ -7,6 +7,13 @@ RUN npm ci
 
 COPY . .
 RUN mkdir -p public
+
+# Railway에서 빌드 시 환경변수를 ARG로 전달
+ARG NEXT_PUBLIC_API_URL
+ARG INTERNAL_API_URL
+ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL
+ENV INTERNAL_API_URL=$INTERNAL_API_URL
+
 RUN npm run build
 
 FROM node:22-alpine AS runner
